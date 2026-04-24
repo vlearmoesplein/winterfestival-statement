@@ -1,0 +1,6 @@
+dist/
+target/
+.trunk/
+tailwindcss
+tailwindcss.exe
+output.css

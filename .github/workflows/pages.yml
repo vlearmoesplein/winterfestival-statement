@@ -1,0 +1,91 @@
+name: Deploy To GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt, clippy
+
+      - name: Run Quality Checks
+        run: |
+          make check
+          make clippy
+          make test
+
+      - name: Install Trunk
+        run: cargo install trunk --locked
+
+      - name: Setup CSS Tooling (Tailwind + daisyUI)
+        shell: bash
+        run: |
+          ARCH="$(uname -m)"
+          case "$ARCH" in
+            x86_64)
+              TAILWIND_URL="https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64"
+              ;;
+            aarch64|arm64)
+              TAILWIND_URL="https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-arm64"
+              ;;
+            *)
+              echo "Unsupported Linux architecture: $ARCH"
+              exit 1
+              ;;
+          esac
+
+          curl -sSL "$TAILWIND_URL" -o tailwindcss
+          chmod +x tailwindcss
+          curl -sSLO "https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.mjs"
+          curl -sSLO "https://github.com/saadeghi/daisyui/releases/latest/download/daisyui-theme.mjs"
+
+      - name: Compute Public URL
+        id: public_url
+        shell: bash
+        run: |
+          if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
+            echo "value=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=/${{ github.event.repository.name }}/" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Site
+        run: trunk build --release --public-url "${{ steps.public_url.outputs.value }}"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy To GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

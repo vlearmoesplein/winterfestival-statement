@@ -1,0 +1,19 @@
+# Rust
+/target/
+
+# Trunk / wasm build outputs
+/dist/
+/.trunk/
+/output.css
+
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# daisyUI / Tailwind standalone binaries
+/tailwindcss
+/tailwindcss.exe
