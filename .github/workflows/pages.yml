@@ -62,7 +62,9 @@ jobs:
         id: public_url
         shell: bash
         run: |
-          if [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
+          if [ -n "${{ vars.PAGES_PUBLIC_URL }}" ]; then
+            echo "value=${{ vars.PAGES_PUBLIC_URL }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.repository.name }}" = "${{ github.repository_owner }}.github.io" ]; then
             echo "value=/" >> "$GITHUB_OUTPUT"
           else
             echo "value=/${{ github.event.repository.name }}/" >> "$GITHUB_OUTPUT"

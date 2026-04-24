@@ -81,6 +81,7 @@ Notes:
 - The workflow computes Trunk `--public-url` automatically:
   - `"/"` for `username.github.io` repositories
   - `"/<repo-name>/"` for project repositories
+- You can override this by setting repository variable `PAGES_PUBLIC_URL` (for custom domains, use `/`).
 - The workflow also downloads Tailwind standalone and daisyUI plugin files before `trunk build`.
 - Quality checks run before deploy:
   - `make check`
@@ -92,6 +93,7 @@ Notes:
 - **404 or missing assets**: confirm Pages source is **GitHub Actions** and deploy succeeded.
 - **Workflow fails on build**: inspect the failed job logs in **Actions**.
 - **Wrong base path**: verify repository naming and `Compute Public URL` step output.
+- **Blank page with empty DOM on custom domain**: set repository variable `PAGES_PUBLIC_URL` to `/`, then redeploy.
 
 ## References
 
